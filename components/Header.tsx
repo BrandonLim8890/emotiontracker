@@ -1,55 +1,53 @@
-import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import React from 'react';
+import NextLink from 'next/link';
+import { useRouter } from 'next/router';
+import { Button, Flex, Heading, Link } from '@chakra-ui/react';
+import { AddIcon } from '@chakra-ui/icons';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onOpen: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onOpen }) => {
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
 
   let left = (
-    <div className="left">
-      <Link href="/">
-        <a className="bold" data-active={isActive("/")}>
-          Feed
-        </a>
-      </Link>
-      <style jsx>{`
-        .bold {
-          font-weight: bold;
-        }
-
-        a {
-          text-decoration: none;
-          color: #000;
-          display: inline-block;
-        }
-
-        .left a[data-active="true"] {
-          color: gray;
-        }
-
-        a + a {
-          margin-left: 1rem;
-        }
-      `}</style>
-    </div>
+    <Flex>
+      <NextLink href='/' passHref>
+        <Link>
+          <Heading as='h1' size='2xl' data-active={isActive('/')}>
+            Emotion Tracker
+          </Heading>
+        </Link>
+      </NextLink>
+    </Flex>
   );
 
-  let right = null;
+  let right = (
+    <Button onClick={onOpen}>
+      <AddIcon />
+    </Button>
+  );
 
   return (
-    <nav>
-      {left}
-      {right}
-      <style jsx>{`
-        nav {
-          display: flex;
-          padding: 2rem;
-          align-items: center;
-        }
-      `}</style>
-    </nav>
+    <div>
+      <Flex
+        position='fixed'
+        top='0'
+        flexDirection='row'
+        alignItems='center'
+        justifyContent='space-between'
+        p='5% 5%'
+        zIndex={1}
+        w='100%'
+        background='white'
+      >
+        {left}
+        {right}
+      </Flex>
+    </div>
   );
 };
 
