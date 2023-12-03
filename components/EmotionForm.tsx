@@ -37,12 +37,12 @@ const EmotionForm: React.FC<Props> = ({ isOpen, onClose, entryToEdit }) => {
     }
   }, [entryToEdit, isOpen]);
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (entryToEdit) {
-      updateEntry();
+      await updateEntry();
     } else {
-      postNewEntry();
+      await postNewEntry();
     }
     setContent('');
     setEmotion('');
@@ -51,8 +51,8 @@ const EmotionForm: React.FC<Props> = ({ isOpen, onClose, entryToEdit }) => {
 
   const updateEntry = async () => {
     try {
-      const body = { emotion, content, id: entryToEdit.id };
-      await fetch('/api/entry', {
+      const body = { emotion, content };
+      return await fetch(`/api/entry/${entryToEdit.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -65,7 +65,7 @@ const EmotionForm: React.FC<Props> = ({ isOpen, onClose, entryToEdit }) => {
   const postNewEntry = async () => {
     try {
       const body = { emotion, content };
-      await fetch('/api/entry', {
+      return await fetch('/api/entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

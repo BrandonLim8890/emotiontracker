@@ -1,39 +1,22 @@
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import {
   Accordion,
-  AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Flex, Heading, IconButton, Text, useDisclosure
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Flex,
+  Heading,
+  IconButton,
+  Spinner,
+  Text,
+  useDisclosure
 } from '@chakra-ui/react';
-import { GetStaticProps } from 'next';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import EmotionForm from '../components/EmotionForm';
 import Layout from '../components/Layout';
-import prisma from '../lib/prisma';
 
-export const getStaticProps: GetStaticProps = async () => {
-  const entries = await prisma.entry.findMany({
-    include: {
-      author: {
-        select: { name: true },
-      },
-    },
-  });
-
-  return {
-    props: {
-      entries: entries
-        .map((entry) => ({
-          ...entry,
-          createdAt: JSON.parse(JSON.stringify(entry.createdAt)),
-          updatedAt: JSON.parse(JSON.stringify(entry.updatedAt)),
-        }))
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        ),
-    },
-    revalidate: 10,
-  };
-};
 
 export type Entry = {
   id: string;
@@ -47,22 +30,46 @@ export type Entry = {
   updatedAt: Date;
 };
 
-type Props = {
-  entries: Entry[];
-};
+const EmotionTracker: React.FC = () => {
+  const [entries, setEntries] = useState<Entry[] | null>(null);
+  const [isLoading, setLoading] = useState(true);
 
-const EmotionTracker: React.FC<Props> = ({ entries }) => {
   const { isOpen, onOpen, onClose: onDisclosureClose } = useDisclosure();
   const [entryToEdit, setEntryToEdit] = useState<Entry | undefined>(undefined);
+
+  const fetchData = async () => {
+    const res = await fetch(`/api/entry`, {
+      method: 'GET',
+    });
+    const data = await res.json();
+    setEntries(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleEditEntry = (entry: Entry) => {
     setEntryToEdit(entry);
     onOpen();
   };
 
+  const handleDeleteEntry = async (entryId: string) => {
+    await fetch(`/api/entry/${entryId}`, {
+      method: 'DELETE'
+    })
+    await fetchData();
+  }
+
   const onClose = () => {
     setEntryToEdit(undefined);
+    fetchData();
     onDisclosureClose();
+  };
+
+  if (isLoading) {
+    return <Spinner />;
   }
 
   return (
@@ -104,6 +111,7 @@ const EmotionTracker: React.FC<Props> = ({ entries }) => {
                         icon={<DeleteIcon />}
                         colorScheme='red'
                         variant='outline'
+                        onClick={() => handleDeleteEntry(entry.id)}
                       />
                     </Flex>
                   </Box>
@@ -113,7 +121,11 @@ const EmotionTracker: React.FC<Props> = ({ entries }) => {
           </Accordion>
         </Box>
       </Layout>
-      <EmotionForm entryToEdit={entryToEdit} onClose={onClose} isOpen={isOpen} />
+      <EmotionForm
+        entryToEdit={entryToEdit}
+        onClose={onClose}
+        isOpen={isOpen}
+      />
     </>
   );
 };

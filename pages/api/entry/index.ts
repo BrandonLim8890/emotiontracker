@@ -1,7 +1,7 @@
 import prisma from '../../../lib/prisma';
 
 export default async function handle(req, res) {
-  const { emotion, content, id } = req.body;
+  const { emotion, content } = req.body;
 
   // POST /api/entry
   // Required fields in body: emotion
@@ -15,17 +15,26 @@ export default async function handle(req, res) {
       },
     });
     res.json(result);
-    // PUT /api/entry
-    // Required fields in body: emotion
-    // Optional fields in body: content
-  } else if (req.method === 'PUT') {
-    const result = await prisma.entry.update({
-      where: { id: id },
-      data: {
-        emotion,
-        content,
+  } else if (req.method === 'GET') {
+    const result = await prisma.entry.findMany({
+      include: {
+        author: {
+          select: { name: true },
+        },
       },
     });
-    res.json(result);
+
+    res.json(
+      result
+        .map((entry) => ({
+          ...entry,
+          createdAt: JSON.parse(JSON.stringify(entry.createdAt)),
+          updatedAt: JSON.parse(JSON.stringify(entry.updatedAt)),
+        }))
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        )
+    );
   }
 }
