@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Drawer,
   DrawerBody,
@@ -14,37 +13,63 @@ import {
   Stack,
   Textarea,
 } from '@chakra-ui/react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Entry } from '../pages';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  prevEmotionValue?: string;
-  prevContentValue?: string;
+  entryToEdit?: Entry;
 };
 
-const EmotionForm: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  prevContentValue,
-  prevEmotionValue,
-}) => {
-  const [emotion, setEmotion] = useState(prevEmotionValue);
-  const [content, setContent] = useState(prevContentValue);
+const EmotionForm: React.FC<Props> = ({ isOpen, onClose, entryToEdit }) => {
+  const [emotion, setEmotion] = useState('');
+  const [content, setContent] = useState('');
   const firstField = useRef();
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  useEffect(() => {
+    if (entryToEdit) {
+      setEmotion(entryToEdit.emotion);
+      setContent(entryToEdit.content);
+    } else {
+      setEmotion('');
+      setContent('');
+    }
+  }, [entryToEdit, isOpen]);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    if (entryToEdit) {
+      updateEntry();
+    } else {
+      postNewEntry();
+    }
+    setContent('');
+    setEmotion('');
+    onClose();
+  };
+
+  const updateEntry = async () => {
+    try {
+      const body = { emotion, content, id: entryToEdit.id };
+      await fetch('/api/entry', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const postNewEntry = async () => {
     try {
       const body = { emotion, content };
-      await fetch('/api/post', {
+      await fetch('/api/entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      setContent('');
-      setEmotion('');
-      onClose();
     } catch (error) {
       console.error(error);
     }

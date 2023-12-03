@@ -1,25 +1,13 @@
-import React from 'react';
-import { GetStaticProps } from 'next';
-import Layout from '../components/Layout';
-import prisma from '../lib/prisma';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import {
   Accordion,
-  AccordionButton,
-  AccordionItem,
-  Box,
-  Text,
-  Heading,
-  Flex,
-  AccordionIcon,
-  AccordionPanel,
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
-  useDisclosure,
+  AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Flex, Heading, IconButton, Text, useDisclosure
 } from '@chakra-ui/react';
+import { GetStaticProps } from 'next';
+import React, { useState } from 'react';
 import EmotionForm from '../components/EmotionForm';
+import Layout from '../components/Layout';
+import prisma from '../lib/prisma';
 
 export const getStaticProps: GetStaticProps = async () => {
   const entries = await prisma.entry.findMany({
@@ -47,7 +35,7 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-type Entry = {
+export type Entry = {
   id: string;
   emotion: string;
   author: {
@@ -64,7 +52,19 @@ type Props = {
 };
 
 const EmotionTracker: React.FC<Props> = ({ entries }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose: onDisclosureClose } = useDisclosure();
+  const [entryToEdit, setEntryToEdit] = useState<Entry | undefined>(undefined);
+
+  const handleEditEntry = (entry: Entry) => {
+    setEntryToEdit(entry);
+    onOpen();
+  };
+
+  const onClose = () => {
+    setEntryToEdit(undefined);
+    onDisclosureClose();
+  }
+
   return (
     <>
       <Layout onOpen={onOpen}>
@@ -74,7 +74,7 @@ const EmotionTracker: React.FC<Props> = ({ entries }) => {
           </Heading>
           <Accordion allowMultiple>
             {entries.map((entry) => (
-              <AccordionItem key={entry.id} py='1.5'>
+              <AccordionItem key={entry.id} my='1.5'>
                 <AccordionButton justifyContent='space-between'>
                   <Heading size='md'>{entry.emotion}</Heading>
                   <Flex textAlign='left' align='center'>
@@ -84,13 +84,36 @@ const EmotionTracker: React.FC<Props> = ({ entries }) => {
                     <AccordionIcon ml='1rem' />
                   </Flex>
                 </AccordionButton>
-                <AccordionPanel pb={4}>{entry.content}</AccordionPanel>
+                <AccordionPanel pb={4}>
+                  <Box>
+                    <Text fontSize='md'>{entry.content}</Text>
+                    <Flex width='100%' justifyContent='end'>
+                      <IconButton
+                        aria-label='Edit Entry'
+                        size='sm'
+                        icon={<EditIcon />}
+                        mr='2'
+                        variant='ghost'
+                        onClick={() => handleEditEntry(entry)}
+                      >
+                        Edit
+                      </IconButton>
+                      <IconButton
+                        aria-label='Delete Entry'
+                        size='sm'
+                        icon={<DeleteIcon />}
+                        colorScheme='red'
+                        variant='outline'
+                      />
+                    </Flex>
+                  </Box>
+                </AccordionPanel>
               </AccordionItem>
             ))}
           </Accordion>
         </Box>
       </Layout>
-      <EmotionForm onClose={onClose} isOpen={isOpen} />
+      <EmotionForm entryToEdit={entryToEdit} onClose={onClose} isOpen={isOpen} />
     </>
   );
 };
