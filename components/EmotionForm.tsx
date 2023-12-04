@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Entry } from '../pages';
+import { CustomButton } from './CustomButton';
 
 type Props = {
   isOpen: boolean;
@@ -114,7 +115,7 @@ const EmotionForm: React.FC<Props> = ({ isOpen, onClose, entryToEdit }) => {
           <Button variant='outline' mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <CustomButton onClick={handleSubmit}>Submit</CustomButton>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

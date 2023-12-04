@@ -11,12 +11,12 @@ import {
   IconButton,
   Spinner,
   Text,
-  useDisclosure
+  useDisclosure,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
+import { CustomIconButton } from '../components/CustomIconButton';
 import EmotionForm from '../components/EmotionForm';
 import Layout from '../components/Layout';
-
 
 export type Entry = {
   id: string;
@@ -57,10 +57,10 @@ const EmotionTracker: React.FC = () => {
 
   const handleDeleteEntry = async (entryId: string) => {
     await fetch(`/api/entry/${entryId}`, {
-      method: 'DELETE'
-    })
+      method: 'DELETE',
+    });
     await fetchData();
-  }
+  };
 
   const onClose = () => {
     setEntryToEdit(undefined);
@@ -95,17 +95,15 @@ const EmotionTracker: React.FC = () => {
                   <Box>
                     <Text fontSize='md'>{entry.content}</Text>
                     <Flex width='100%' justifyContent='end'>
-                      <IconButton
+                      <CustomIconButton
                         aria-label='Edit Entry'
                         size='sm'
                         icon={<EditIcon />}
                         mr='2'
                         variant='ghost'
                         onClick={() => handleEditEntry(entry)}
-                      >
-                        Edit
-                      </IconButton>
-                      <IconButton
+                      />
+                      <CustomIconButton
                         aria-label='Delete Entry'
                         size='sm'
                         icon={<DeleteIcon />}
